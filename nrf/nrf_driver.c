@@ -256,7 +256,7 @@ static THD_FUNCTION(rx_thread, arg) {
 
 						commands_set_send_func(nrf_driver_send_buffer);
 						from_nrf = true;
-						commands_process_packet(rx_buffer, rxbuf_len);
+						commands_process_packet(rx_buffer, rxbuf_len, 1);
 						from_nrf = false;
 					}
 				}
@@ -268,7 +268,7 @@ static THD_FUNCTION(rx_thread, arg) {
 
 					commands_set_send_func(nrf_driver_send_buffer);
 					from_nrf = true;
-					commands_process_packet(buf + 1, len - 1);
+					commands_process_packet(buf + 1, len - 1,1);
 					from_nrf = false;
 					break;
 
