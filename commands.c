@@ -63,6 +63,13 @@ static void(*send_func_last)(unsigned char *data, unsigned int len) = 0;
 static void(*appdata_func)(unsigned char *data, unsigned int len) = 0;
 static disp_pos_mode display_position_mode;
 
+typedef enum {
+    COMM_USB =0,
+    NRF_DRIVER,
+    APP_UARTCOMM,
+    COMM_CAN
+}PacketSender;
+
 void commands_init(void) {
 	chThdCreateStatic(detect_thread_wa, sizeof(detect_thread_wa), NORMALPRIO, detect_thread, NULL);
 }
@@ -101,7 +108,7 @@ void commands_send_packet(unsigned char *data, unsigned int len) {
  * @param len
  * The length of the buffer.
  */
-void commands_process_packet(unsigned char *data, unsigned int len) {
+void commands_process_packet(unsigned char *data, unsigned int len, int Sender) {
 	if (!len) {
 		return;
 	}
@@ -163,25 +170,50 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 
 	case COMM_GET_VALUES:
 		ind = 0;
-		send_buffer[ind++] = COMM_GET_VALUES;
-		buffer_append_float16(send_buffer, mc_interface_temp_fet_filtered(), 1e1, &ind);
-		buffer_append_float16(send_buffer, mc_interface_temp_motor_filtered(), 1e1, &ind);
-		buffer_append_float32(send_buffer, mc_interface_read_reset_avg_motor_current(), 1e2, &ind);
-		buffer_append_float32(send_buffer, mc_interface_read_reset_avg_input_current(), 1e2, &ind);
-		buffer_append_float32(send_buffer, mc_interface_read_reset_avg_id(), 1e2, &ind);
-		buffer_append_float32(send_buffer, mc_interface_read_reset_avg_iq(), 1e2, &ind);
-		buffer_append_float16(send_buffer, mc_interface_get_duty_cycle_now(), 1e3, &ind);
-		buffer_append_float32(send_buffer, mc_interface_get_rpm(), 1e0, &ind);
-		buffer_append_float16(send_buffer, GET_INPUT_VOLTAGE(), 1e1, &ind);
-		buffer_append_float32(send_buffer, mc_interface_get_amp_hours(false), 1e4, &ind);
-		buffer_append_float32(send_buffer, mc_interface_get_amp_hours_charged(false), 1e4, &ind);
-		buffer_append_float32(send_buffer, mc_interface_get_watt_hours(false), 1e4, &ind);
-		buffer_append_float32(send_buffer, mc_interface_get_watt_hours_charged(false), 1e4, &ind);
-		buffer_append_int32(send_buffer, mc_interface_get_tachometer_value(false), &ind);
-		buffer_append_int32(send_buffer, mc_interface_get_tachometer_abs_value(false), &ind);
-		//send_buffer[ind++] = mc_interface_get_fault();
-		//buffer_append_float32(send_buffer, mc_interface_get_pid_pos_now(), 1e6, &ind);
-		commands_send_packet(send_buffer, ind);
+            if(Sender == APP_UARTCOMM)
+            {
+                send_buffer[ind++] = COMM_GET_VALUES;
+                buffer_append_float16(send_buffer, mc_interface_temp_fet_filtered(), 1e1, &ind);
+                buffer_append_float16(send_buffer, mc_interface_temp_motor_filtered(), 1e1, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_motor_current(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_input_current(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_id(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_iq(), 1e2, &ind);
+                buffer_append_float16(send_buffer, mc_interface_get_duty_cycle_now(), 1e3, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_rpm(), 1e0, &ind);
+                buffer_append_float16(send_buffer, GET_INPUT_VOLTAGE(), 1e1, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_amp_hours(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_amp_hours_charged(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_watt_hours(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_watt_hours_charged(false), 1e4, &ind);
+                buffer_append_int32(send_buffer, mc_interface_get_tachometer_value(false), &ind);
+                buffer_append_int32(send_buffer, mc_interface_get_tachometer_abs_value(false), &ind);
+                send_buffer[ind++] = mc_interface_get_fault();
+              //  buffer_append_float32(send_buffer, mc_interface_get_pid_pos_now(), 1e6, &ind);
+                commands_send_packet(send_buffer, ind);
+            }
+            else
+            {
+                send_buffer[ind++] = COMM_GET_VALUES;
+                buffer_append_float16(send_buffer, mc_interface_temp_fet_filtered(), 1e1, &ind);
+                buffer_append_float16(send_buffer, mc_interface_temp_motor_filtered(), 1e1, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_motor_current(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_input_current(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_id(), 1e2, &ind);
+                buffer_append_float32(send_buffer, mc_interface_read_reset_avg_iq(), 1e2, &ind);
+                buffer_append_float16(send_buffer, mc_interface_get_duty_cycle_now(), 1e3, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_rpm(), 1e0, &ind);
+                buffer_append_float16(send_buffer, GET_INPUT_VOLTAGE(), 1e1, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_amp_hours(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_amp_hours_charged(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_watt_hours(false), 1e4, &ind);
+                buffer_append_float32(send_buffer, mc_interface_get_watt_hours_charged(false), 1e4, &ind);
+                buffer_append_int32(send_buffer, mc_interface_get_tachometer_value(false), &ind);
+                buffer_append_int32(send_buffer, mc_interface_get_tachometer_abs_value(false), &ind);
+                send_buffer[ind++] = mc_interface_get_fault();
+                buffer_append_float32(send_buffer, mc_interface_get_pid_pos_now(), 1e6, &ind);
+                commands_send_packet(send_buffer, ind);
+            }
 		break;
 
 	case COMM_SET_DUTY:
@@ -238,10 +270,10 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		break;
 
 	case COMM_SET_SERVO_POS:
-#if SERVO_OUT_ENABLE
-		ind = 0;
-		servo_simple_set_output(buffer_get_float16(data, 1000.0, &ind));
-#endif
+//#if SERVO_OUT_ENABLE
+	//	ind = 0;
+	//	servo_simple_set_output(buffer_get_float16(data, 1000.0, &ind));
+//#endif
 		break;
 
 	case COMM_SET_MCCONF:
@@ -819,7 +851,20 @@ void commands_process_packet(unsigned char *data, unsigned int len) {
 		break;
 
 	case COMM_FORWARD_CAN:
-		comm_can_send_buffer(data[0], data + 1, len - 1, false);
+            if(Sender == APP_UARTCOMM)
+            {
+                ind = 0;
+                chuck_d_tmp.js_x = data[ind++];
+                chuck_d_tmp.js_y = data[ind++];
+                chuck_d_tmp.bt_c = data[ind++];
+                chuck_d_tmp.bt_z = data[ind++];
+                chuck_d_tmp.acc_x = buffer_get_int16(data, &ind);
+                chuck_d_tmp.acc_y = buffer_get_int16(data, &ind);
+                chuck_d_tmp.acc_z = buffer_get_int16(data, &ind);
+                app_nunchuk_update_output(&chuck_d_tmp);
+            }
+            else
+                comm_can_send_buffer(data[0], data + 1, len - 1, false);
 		break;
 
 	case COMM_SET_CHUCK_DATA:
