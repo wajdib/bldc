@@ -233,7 +233,7 @@ static THD_FUNCTION(cancom_process_thread, arg) {
 								commands_send_packet(rx_buffer, rxbuf_len);
 							} else {
 								commands_set_send_func(send_packet_wrapper);
-								commands_process_packet(rx_buffer, rxbuf_len);
+								commands_process_packet(rx_buffer, rxbuf_len,3);
 							}
 						}
 						break;
@@ -247,7 +247,7 @@ static THD_FUNCTION(cancom_process_thread, arg) {
 							commands_send_packet(rxmsg.data8 + ind, rxmsg.DLC - ind);
 						} else {
 							commands_set_send_func(send_packet_wrapper);
-							commands_process_packet(rxmsg.data8 + ind, rxmsg.DLC - ind);
+							commands_process_packet(rxmsg.data8 + ind, rxmsg.DLC - ind,3);
 						}
 						break;
 
